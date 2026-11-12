@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Presensi QR</title>
+    <!-- Memanggil Pustaka Kamera QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+        #reader { width: 100%; max-width: 400px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #hasil { margin-top: 20px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>Scan QR Code Presensi</h2>
+    <div id="reader"></div>
+    <div id="hasil">Arahkan kamera ke QR Code...</div>
+
+    <script>
+        // Ganti URL di bawah ini dengan URL Web App Apps Script Anda yang berakhiran /exec
+        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzcQotJ_emkBK_t5Gp5Vl54WxxGnGMhepQfKEvbEKijRjbTgui9nIDEY7qPAl0naWqnzA/exec";
+
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('hasil').innerText = "Memproses ID: " + decodedText + "...";
+            
+            // Mengirim data hasil scan ke Google Apps Script
+            fetch(URL_APPS_SCRIPT + "?id=" + decodedText + "&callback=selesai")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('hasil').innerText = "Berhasil Absen untuk ID: " + decodedText;
+                })
+                .catch(error => {
+                    document.getElementById('hasil').innerText = "Gagal mengirim data!";
+                });
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>
