@@ -19,19 +19,18 @@
     <div id="hasil" style="color: #555;">Arahkan kamera ke QR Code...</div>
 
     <script>
-        // Masukkan URL Web App Apps Script Anda yang berakhiran /exec di sini
+        // URL Web App Apps Script Anda
         const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzcQotJ_emkBK_t5Gp5Vl54WxxGnGMhepQfKEvbEKijRjbTgui9nIDEY7qPAl0naWqnzA/exec";
 
         let isProcessing = false;
 
         function onScanSuccess(decodedText, decodedResult) {
-            if (isProcessing) return; // Mencegah scan beruntun dalam waktu bersamaan
+            if (isProcessing) return;
             isProcessing = true;
 
             document.getElementById('hasil').style.color = "#d97706";
-            document.getElementById('hasil'].innerText = "Mengirim ID: " + decodedText + "...";
+            document.getElementById('hasil').innerText = "Mengirim ID: " + decodedText + "...";
             
-            // Mengirim data menggunakan metode POST agar tidak diblokir browser
             fetch(URL_APPS_SCRIPT, {
                 method: "POST",
                 mode: "no-cors", 
@@ -44,7 +43,6 @@
                 document.getElementById('hasil').style.color = "#16a34a";
                 document.getElementById('hasil').innerText = "Berhasil Absen: " + decodedText;
                 
-                // Jeda 3 detik sebelum scanner siap scan berikutnya
                 setTimeout(() => {
                     isProcessing = false;
                     document.getElementById('hasil').style.color = "#555";
