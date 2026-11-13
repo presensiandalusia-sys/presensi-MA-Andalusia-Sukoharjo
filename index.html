@@ -9,31 +9,53 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
         #reader { width: 100%; max-width: 400px; margin: auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #hasil { margin-top: 20px; font-size: 18px; font-weight: bold; }
+        #hasil { margin-top: 20px; font-size: 18px; font-weight: bold; padding: 10px; }
     </style>
 </head>
 <body>
 
     <h2>Scan QR Code Presensi</h2>
     <div id="reader"></div>
-    <div id="hasil">Arahkan kamera ke QR Code...</div>
+    <div id="hasil" style="color: #555;">Arahkan kamera ke QR Code...</div>
 
     <script>
-        // Ganti URL di bawah ini dengan URL Web App Apps Script Anda yang berakhiran /exec
+        // Masukkan URL Web App Apps Script Anda yang berakhiran /exec di sini
         const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzcQotJ_emkBK_t5Gp5Vl54WxxGnGMhepQfKEvbEKijRjbTgui9nIDEY7qPAl0naWqnzA/exec";
 
+        let isProcessing = false;
+
         function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById('hasil').innerText = "Memproses ID: " + decodedText + "...";
+            if (isProcessing) return; // Mencegah scan beruntun dalam waktu bersamaan
+            isProcessing = true;
+
+            document.getElementById('hasil').style.color = "#d97706";
+            document.getElementById('hasil'].innerText = "Mengirim ID: " + decodedText + "...";
             
-            // Mengirim data hasil scan ke Google Apps Script
-            fetch(URL_APPS_SCRIPT + "?id=" + decodedText + "&callback=selesai")
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('hasil').innerText = "Berhasil Absen untuk ID: " + decodedText;
-                })
-                .catch(error => {
-                    document.getElementById('hasil').innerText = "Gagal mengirim data!";
-                });
+            // Mengirim data menggunakan metode POST agar tidak diblokir browser
+            fetch(URL_APPS_SCRIPT, {
+                method: "POST",
+                mode: "no-cors", 
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ id: decodedText })
+            })
+            .then(() => {
+                document.getElementById('hasil').style.color = "#16a34a";
+                document.getElementById('hasil').innerText = "Berhasil Absen: " + decodedText;
+                
+                // Jeda 3 detik sebelum scanner siap scan berikutnya
+                setTimeout(() => {
+                    isProcessing = false;
+                    document.getElementById('hasil').style.color = "#555";
+                    document.getElementById('hasil').innerText = "Arahkan kamera ke QR Code...";
+                }, 3000);
+            })
+            .catch(error => {
+                document.getElementById('hasil').style.color = "#dc2626";
+                document.getElementById('hasil').innerText = "Gagal mengirim data!";
+                isProcessing = false;
+            });
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner(
